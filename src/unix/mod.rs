@@ -1523,6 +1523,90 @@ cfg_if! {
                 pub const ND_RA_FLAG_HOME_AGENT: u8 = 0x20;
             }
         }
+
+        // ICMPv6 node information queries in `netinet/icmp6.h`, from the KAME-derived headers
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "netbsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            ))] {
+                s2! {
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct ni_reply_fqdn {
+                        pub ni_fqdn_ttl: u32,
+                        pub ni_fqdn_namelen: u8,
+                        pub ni_fqdn_name: [u8; 3],
+                    }
+                }
+
+                s_no_extra_traits2! {
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct icmp6_nodeinfo {
+                        pub icmp6_ni_hdr: icmp6_hdr,
+                        pub icmp6_ni_nonce: [u8; 8],
+                    }
+
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct icmp6_namelookup {
+                        pub icmp6_nl_hdr: icmp6_hdr,
+                        pub icmp6_nl_nonce: [u8; 8],
+                        pub icmp6_nl_ttl: i32,
+                    }
+                }
+
+                pub const ICMP6_WRUREQUEST: u8 = 139;
+                pub const ICMP6_WRUREPLY: u8 = 140;
+                pub const ICMP6_FQDN_QUERY: u8 = 139;
+                pub const ICMP6_FQDN_REPLY: u8 = 140;
+                pub const ICMP6_NI_QUERY: u8 = 139;
+                pub const ICMP6_NI_REPLY: u8 = 140;
+
+                pub const ICMP6_NI_SUBJ_IPV6: u8 = 0;
+                pub const ICMP6_NI_SUBJ_FQDN: u8 = 1;
+                pub const ICMP6_NI_SUBJ_IPV4: u8 = 2;
+
+                pub const ICMP6_NI_SUCCESS: u8 = 0;
+                pub const ICMP6_NI_REFUSED: u8 = 1;
+                pub const ICMP6_NI_UNKNOWN: u8 = 2;
+
+                pub const NI_QTYPE_NOOP: u16 = 0;
+                pub const NI_QTYPE_SUPTYPES: u16 = 1;
+                pub const NI_QTYPE_FQDN: u16 = 2;
+                pub const NI_QTYPE_DNSNAME: u16 = 2;
+                pub const NI_QTYPE_NODEADDR: u16 = 3;
+                pub const NI_QTYPE_IPV4ADDR: u16 = 4;
+
+                cfg_if! {
+                    if #[cfg(target_endian = "big")] {
+                        pub const NI_SUPTYPE_FLAG_COMPRESS: u16 = 0x1;
+                        pub const NI_FQDN_FLAG_VALIDTTL: u16 = 0x1;
+
+                        pub const NI_NODEADDR_FLAG_TRUNCATE: u16 = 0x1;
+                        pub const NI_NODEADDR_FLAG_ALL: u16 = 0x2;
+                        pub const NI_NODEADDR_FLAG_COMPAT: u16 = 0x4;
+                        pub const NI_NODEADDR_FLAG_LINKLOCAL: u16 = 0x8;
+                        pub const NI_NODEADDR_FLAG_SITELOCAL: u16 = 0x10;
+                        pub const NI_NODEADDR_FLAG_GLOBAL: u16 = 0x20;
+                        pub const NI_NODEADDR_FLAG_ANYCAST: u16 = 0x40;
+                    } else {
+                        pub const NI_SUPTYPE_FLAG_COMPRESS: u16 = 0x0100;
+                        pub const NI_FQDN_FLAG_VALIDTTL: u16 = 0x0100;
+
+                        pub const NI_NODEADDR_FLAG_TRUNCATE: u16 = 0x0100;
+                        pub const NI_NODEADDR_FLAG_ALL: u16 = 0x0200;
+                        pub const NI_NODEADDR_FLAG_COMPAT: u16 = 0x0400;
+                        pub const NI_NODEADDR_FLAG_LINKLOCAL: u16 = 0x0800;
+                        pub const NI_NODEADDR_FLAG_SITELOCAL: u16 = 0x1000;
+                        pub const NI_NODEADDR_FLAG_GLOBAL: u16 = 0x2000;
+                        pub const NI_NODEADDR_FLAG_ANYCAST: u16 = 0x4000;
+                    }
+                }
+            }
+        }
     }
 }
 
