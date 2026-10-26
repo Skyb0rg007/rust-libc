@@ -666,6 +666,58 @@ extern "C" {
 
     pub fn getifaddrs(ifap: *mut *mut crate::ifaddrs) -> c_int;
     pub fn freeifaddrs(ifa: *mut crate::ifaddrs);
+
+    pub fn inet6_opt_init(extbuf: *mut c_void, extlen: crate::socklen_t) -> c_int;
+    pub fn inet6_opt_append(
+        extbuf: *mut c_void,
+        extlen: crate::socklen_t,
+        offset: c_int,
+        type_: u8,
+        len: crate::socklen_t,
+        align: u8,
+        databufp: *mut *mut c_void,
+    ) -> c_int;
+    pub fn inet6_opt_finish(extbuf: *mut c_void, extlen: crate::socklen_t, offset: c_int) -> c_int;
+    pub fn inet6_opt_set_val(
+        databuf: *mut c_void,
+        offset: c_int,
+        val: *mut c_void,
+        vallen: crate::socklen_t,
+    ) -> c_int;
+    pub fn inet6_opt_next(
+        extbuf: *mut c_void,
+        extlen: crate::socklen_t,
+        offset: c_int,
+        typep: *mut u8,
+        lenp: *mut crate::socklen_t,
+        databufp: *mut *mut c_void,
+    ) -> c_int;
+    pub fn inet6_opt_find(
+        extbuf: *mut c_void,
+        extlen: crate::socklen_t,
+        offset: c_int,
+        type_: u8,
+        lenp: *mut crate::socklen_t,
+        databufp: *mut *mut c_void,
+    ) -> c_int;
+    pub fn inet6_opt_get_val(
+        databuf: *mut c_void,
+        offset: c_int,
+        val: *mut c_void,
+        vallen: crate::socklen_t,
+    ) -> c_int;
+    pub fn inet6_rth_space(type_: c_int, segments: c_int) -> crate::socklen_t;
+    pub fn inet6_rth_init(
+        bp: *mut c_void,
+        bp_len: crate::socklen_t,
+        type_: c_int,
+        segments: c_int,
+    ) -> *mut c_void;
+    pub fn inet6_rth_add(bp: *mut c_void, addr: *const crate::in6_addr) -> c_int;
+    pub fn inet6_rth_reverse(in_: *const c_void, out: *mut c_void) -> c_int;
+    pub fn inet6_rth_segments(bp: *const c_void) -> c_int;
+    pub fn inet6_rth_getaddr(bp: *const c_void, index: c_int) -> *mut crate::in6_addr;
+
     pub fn setgroups(ngroups: c_int, ptr: *const crate::gid_t) -> c_int;
     pub fn setlogin(name: *const c_char) -> c_int;
     pub fn ioctl(fd: c_int, request: c_ulong, ...) -> c_int;
