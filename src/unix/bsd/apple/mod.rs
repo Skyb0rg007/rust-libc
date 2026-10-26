@@ -2970,6 +2970,10 @@ pub const IPV6_ADDR_MC_FLAGS_PREFIX: u8 = 0x20;
 pub const IPV6_ADDR_MC_FLAGS_UNICAST_BASED: u8 =
     IPV6_ADDR_MC_FLAGS_TRANSIENT | IPV6_ADDR_MC_FLAGS_PREFIX;
 
+pub const IN6ADDR_V4MAPPED_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0, 0, 0],
+};
+
 pub const TCP_NOPUSH: c_int = 4;
 pub const TCP_NOOPT: c_int = 8;
 pub const TCP_KEEPALIVE: c_int = 0x10;

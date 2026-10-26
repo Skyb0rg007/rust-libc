@@ -286,6 +286,28 @@ pub const IPV6_DONTFRAG: c_int = 62;
 
 pub const IPV6_RTHDR_LOOSE: c_int = 0;
 
+pub const IN6ADDR_NODELOCAL_ALLNODES_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01],
+};
+#[cfg(not(target_os = "netbsd"))]
+pub const IN6ADDR_INTFACELOCAL_ALLNODES_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01],
+};
+pub const IN6ADDR_LINKLOCAL_ALLNODES_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01],
+};
+pub const IN6ADDR_LINKLOCAL_ALLROUTERS_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x02],
+};
+#[cfg(any(target_os = "freebsd", target_vendor = "apple"))]
+pub const IN6ADDR_LINKLOCAL_ALLV2ROUTERS_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x16],
+};
+#[cfg(target_os = "dragonfly")]
+pub const IN6ADDR_LINKLOCAL_ALLMDNS_INIT: crate::in6_addr = crate::in6_addr {
+    s6_addr: [0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xfb],
+};
+
 pub const IPTOS_ECN_NOTECT: u8 = 0x00;
 pub const IPTOS_ECN_MASK: u8 = 0x03;
 pub const IPTOS_ECN_ECT1: u8 = 0x01;
@@ -777,6 +799,16 @@ extern "C" {
     pub fn inet6_rth_reverse(in_: *const c_void, out: *mut c_void) -> c_int;
     pub fn inet6_rth_segments(bp: *const c_void) -> c_int;
     pub fn inet6_rth_getaddr(bp: *const c_void, index: c_int) -> *mut crate::in6_addr;
+
+    #[cfg(not(target_os = "openbsd"))]
+    pub static in6addr_nodelocal_allnodes: crate::in6_addr;
+    #[cfg(target_os = "openbsd")]
+    pub static in6addr_intfacelocal_allnodes: crate::in6_addr;
+    pub static in6addr_linklocal_allnodes: crate::in6_addr;
+    #[cfg(not(target_os = "dragonfly"))]
+    pub static in6addr_linklocal_allrouters: crate::in6_addr;
+    #[cfg(any(target_os = "freebsd", target_vendor = "apple"))]
+    pub static in6addr_linklocal_allv2routers: crate::in6_addr;
 
     pub fn setgroups(ngroups: c_int, ptr: *const crate::gid_t) -> c_int;
     pub fn setlogin(name: *const c_char) -> c_int;

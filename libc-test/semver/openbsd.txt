@@ -363,6 +363,10 @@ IFF_SIMPLEX
 IFF_STATICARP
 IFF_UP
 IMAXBEL
+IN6ADDR_INTFACELOCAL_ALLNODES_INIT
+IN6ADDR_LINKLOCAL_ALLNODES_INIT
+IN6ADDR_LINKLOCAL_ALLROUTERS_INIT
+IN6ADDR_NODELOCAL_ALLNODES_INIT
 IN6_ARE_ADDR_EQUAL
 IN6_IS_ADDR_LINKLOCAL
 IN6_IS_ADDR_LOOPBACK
@@ -1445,6 +1449,9 @@ if_nameindex
 ifaddrs
 ifreq
 in6_pktinfo
+in6addr_intfacelocal_allnodes
+in6addr_linklocal_allnodes
+in6addr_linklocal_allrouters
 inet6_opt_append
 inet6_opt_find
 inet6_opt_finish

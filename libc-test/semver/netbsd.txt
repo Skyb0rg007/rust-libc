@@ -478,6 +478,9 @@ IFF_RUNNING
 IFF_SIMPLEX
 IFF_UP
 IMAXBEL
+IN6ADDR_LINKLOCAL_ALLNODES_INIT
+IN6ADDR_LINKLOCAL_ALLROUTERS_INIT
+IN6ADDR_NODELOCAL_ALLNODES_INIT
 IN6_ARE_ADDR_EQUAL
 IN6_IS_ADDR_LINKLOCAL
 IN6_IS_ADDR_LOOPBACK
@@ -1615,6 +1618,9 @@ if_nameindex
 ifaddrs
 ifconf
 in6_pktinfo
+in6addr_linklocal_allnodes
+in6addr_linklocal_allrouters
+in6addr_nodelocal_allnodes
 in_pktinfo
 inet6_opt_append
 inet6_opt_find
