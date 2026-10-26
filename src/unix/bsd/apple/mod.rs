@@ -2965,6 +2965,11 @@ pub const IP_BLOCK_SOURCE: c_int = 72;
 pub const IP_UNBLOCK_SOURCE: c_int = 73;
 pub const IPV6_BOUND_IF: c_int = 125;
 
+pub const IPV6_ADDR_MC_FLAGS_TRANSIENT: u8 = 0x10;
+pub const IPV6_ADDR_MC_FLAGS_PREFIX: u8 = 0x20;
+pub const IPV6_ADDR_MC_FLAGS_UNICAST_BASED: u8 =
+    IPV6_ADDR_MC_FLAGS_TRANSIENT | IPV6_ADDR_MC_FLAGS_PREFIX;
+
 pub const TCP_NOPUSH: c_int = 4;
 pub const TCP_NOOPT: c_int = 8;
 pub const TCP_KEEPALIVE: c_int = 0x10;
@@ -4450,6 +4455,18 @@ f! {
 
     pub const safe fn minor(dev: u32) -> i32 {
         (dev & 0xffffff) as i32
+    }
+
+    pub const safe fn IN6_IS_ADDR_UNIQUE_LOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xfc || a.s6_addr[0] == 0xfd
+    }
+
+    pub const safe fn IPV6_ADDR_MC_FLAGS(a: &crate::in6_addr) -> u8 {
+        a.s6_addr[1] & 0xf0
+    }
+
+    pub const safe fn IN6_IS_ADDR_UNICAST_BASED_MULTICAST(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0xf0) == IPV6_ADDR_MC_FLAGS_UNICAST_BASED
     }
 }
 

@@ -636,6 +636,66 @@ f! {
     pub safe fn ICMP6_FILTER_SETBLOCK(typ: u8, filt: &mut icmp6_filter) -> () {
         filt.icmp6_filt[(typ >> 5) as usize] &= !(1 << (typ & 31));
     }
+
+    pub const safe fn IN6_IS_ADDR_UNSPECIFIED(a: &crate::in6_addr) -> bool {
+        u128::from_ne_bytes(a.s6_addr) == 0
+    }
+
+    pub const safe fn IN6_IS_ADDR_LOOPBACK(a: &crate::in6_addr) -> bool {
+        u128::from_be_bytes(a.s6_addr) == 1
+    }
+
+    pub const safe fn IN6_IS_ADDR_MULTICAST(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff
+    }
+
+    pub const safe fn IN6_IS_ADDR_LINKLOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xfe && (a.s6_addr[1] & 0xc0) == 0x80
+    }
+
+    pub const safe fn IN6_IS_ADDR_SITELOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xfe && (a.s6_addr[1] & 0xc0) == 0xc0
+    }
+
+    pub const safe fn IN6_IS_ADDR_V4MAPPED(a: &crate::in6_addr) -> bool {
+        u128::from_be_bytes(a.s6_addr) >> 32 == 0xffff
+    }
+
+    pub const safe fn IN6_IS_ADDR_V4COMPAT(a: &crate::in6_addr) -> bool {
+        let addr = u128::from_be_bytes(a.s6_addr);
+        addr >> 32 == 0 && addr > 1
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_NODELOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x01
+    }
+
+    #[cfg(not(target_vendor = "apple"))]
+    pub const safe fn IN6_IS_ADDR_MC_LINKLOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x02
+    }
+
+    // Apple excludes unicast-prefix-based link-local multicast addresses (RFC 3306)
+    #[cfg(target_vendor = "apple")]
+    pub const safe fn IN6_IS_ADDR_MC_LINKLOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0xf0) != 0x30 && (a.s6_addr[1] & 0x0f) == 0x02
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_SITELOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x05
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_ORGLOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x08
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_GLOBAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x0e
+    }
+
+    pub const safe fn IN6_ARE_ADDR_EQUAL(a: &crate::in6_addr, b: &crate::in6_addr) -> bool {
+        u128::from_ne_bytes(a.s6_addr) == u128::from_ne_bytes(b.s6_addr)
+    }
 }
 
 extern "C" {

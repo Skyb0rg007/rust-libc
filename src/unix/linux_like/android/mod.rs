@@ -1891,6 +1891,13 @@ pub const IPV6_FREEBIND: c_int = 78;
 pub const IPV6_FLOWINFO_FLOWLABEL: c_int = 0x000fffff;
 pub const IPV6_FLOWINFO_PRIORITY: c_int = 0x0ff00000;
 
+pub const IPV6_ADDR_SCOPE_NODELOCAL: u8 = 0x01;
+pub const IPV6_ADDR_SCOPE_INTFACELOCAL: u8 = 0x01;
+pub const IPV6_ADDR_SCOPE_LINKLOCAL: u8 = 0x02;
+pub const IPV6_ADDR_SCOPE_SITELOCAL: u8 = 0x05;
+pub const IPV6_ADDR_SCOPE_ORGLOCAL: u8 = 0x08;
+pub const IPV6_ADDR_SCOPE_GLOBAL: u8 = 0x0e;
+
 pub const IUTF8: crate::tcflag_t = 0x00004000;
 pub const CMSPAR: crate::tcflag_t = 0o10000000000;
 pub const O_TMPFILE: c_int = 0o20000000 | O_DIRECTORY;
@@ -3520,6 +3527,14 @@ f! {
 
     pub const safe fn minor(dev: crate::dev_t) -> c_int {
         ((dev & 0xff) | ((dev >> 12) & 0xfff00)) as c_int
+    }
+
+    pub const safe fn IN6_IS_ADDR_ULA(a: &crate::in6_addr) -> bool {
+        (a.s6_addr[0] & 0xfe) == 0xfc
+    }
+
+    pub const safe fn IPV6_ADDR_MC_SCOPE(a: &crate::in6_addr) -> u8 {
+        a.s6_addr[1] & 0x0f
     }
 }
 

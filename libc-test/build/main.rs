@@ -64,6 +64,7 @@ fn do_cc(t: &Target) {
         cc::Build::new()
             .file("src/icmp6_filter.c")
             .compile("icmp6_filter");
+        cc::Build::new().file("src/in6_addr.c").compile("in6_addr");
     }
 }
 

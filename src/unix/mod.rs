@@ -436,6 +436,8 @@ cfg_if! {
         target_vendor = "apple",
     ))] {
         // netinet/in.h
+        pub const INET_ADDRSTRLEN: usize = 16;
+        pub const INET6_ADDRSTRLEN: usize = 46;
         #[cfg(not(target_os = "android"))]
         pub const IPV6_RTHDR_TYPE_0: c_int = 0;
 

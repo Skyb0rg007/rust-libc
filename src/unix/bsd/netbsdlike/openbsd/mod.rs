@@ -1906,6 +1906,10 @@ f! {
         res |= ((dev) & 0xffff0000) >> 8;
         res
     }
+
+    pub const safe fn IN6_IS_ADDR_MC_INTFACELOCAL(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x01
+    }
 }
 
 extern "C" {

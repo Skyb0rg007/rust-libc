@@ -235,6 +235,35 @@ pub const TFD_NONBLOCK: i32 = 0o4000;
 pub const TFD_TIMER_ABSTIME: i32 = 1 << 0;
 pub const TFD_TIMER_CANCEL_ON_SET: i32 = 1 << 1;
 
+f! {
+    pub const safe fn IN6_IS_ADDR_V4MAPPED_ANY(a: &crate::in6_addr) -> bool {
+        u128::from_be_bytes(a.s6_addr) == 0xffff_0000_0000
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_RESERVED(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0xff && (a.s6_addr[1] & 0x0f) == 0x00
+    }
+
+    pub const safe fn IN6_IS_ADDR_MC_SOLICITEDNODE(a: &crate::in6_addr) -> bool {
+        // ff02::1:ff00:0/104
+        u128::from_be_bytes(a.s6_addr) >> 24 == 0xff02_0000_0000_0000_0000_0001_ff
+    }
+
+    pub const safe fn IN6_IS_ADDR_6TO4(a: &crate::in6_addr) -> bool {
+        a.s6_addr[0] == 0x20 && a.s6_addr[1] == 0x02
+    }
+
+    pub const safe fn IN6_ARE_6TO4_PREFIX_EQUAL(a: &crate::in6_addr, b: &crate::in6_addr) -> bool {
+        u128::from_be_bytes(a.s6_addr) >> 80 == u128::from_be_bytes(b.s6_addr) >> 80
+    }
+
+    pub const safe fn IN6_IS_ADDR_LINKSCOPE(a: &crate::in6_addr) -> bool {
+        crate::IN6_IS_ADDR_LINKLOCAL(a)
+            || crate::IN6_IS_ADDR_MC_LINKLOCAL(a)
+            || crate::IN6_IS_ADDR_MC_NODELOCAL(a)
+    }
+}
+
 extern "C" {
     pub fn eventfd(initval: c_uint, flags: c_int) -> c_int;
 
