@@ -1018,6 +1018,57 @@ extern "C" {
 }
 
 cfg_if! {
+    // RFC 2292, obsoleted by RFC 3542
+    if #[cfg(not(target_os = "openbsd"))] {
+        extern "C" {
+            pub fn inet6_option_space(nbytes: c_int) -> c_int;
+            pub fn inet6_option_init(
+                bp: *mut c_void,
+                cmsgp: *mut *mut crate::cmsghdr,
+                type_: c_int,
+            ) -> c_int;
+            pub fn inet6_option_append(
+                cmsg: *mut crate::cmsghdr,
+                typep: *const u8,
+                multx: c_int,
+                plusy: c_int,
+            ) -> c_int;
+            pub fn inet6_option_alloc(
+                cmsg: *mut crate::cmsghdr,
+                datalen: c_int,
+                multx: c_int,
+                plusy: c_int,
+            ) -> *mut u8;
+            pub fn inet6_option_next(cmsg: *const crate::cmsghdr, tptrp: *mut *mut u8) -> c_int;
+            pub fn inet6_option_find(
+                cmsg: *const crate::cmsghdr,
+                tptrp: *mut *mut u8,
+                type_: c_int,
+            ) -> c_int;
+
+            pub fn inet6_rthdr_space(type_: c_int, segments: c_int) -> size_t;
+            pub fn inet6_rthdr_init(bp: *mut c_void, type_: c_int) -> *mut crate::cmsghdr;
+            pub fn inet6_rthdr_add(
+                cmsg: *mut crate::cmsghdr,
+                addr: *const crate::in6_addr,
+                flags: c_uint,
+            ) -> c_int;
+            pub fn inet6_rthdr_lasthop(cmsg: *mut crate::cmsghdr, flags: c_uint) -> c_int;
+            pub fn inet6_rthdr_reverse(
+                in_: *const crate::cmsghdr,
+                out: *mut crate::cmsghdr,
+            ) -> c_int;
+            pub fn inet6_rthdr_segments(cmsg: *const crate::cmsghdr) -> c_int;
+            pub fn inet6_rthdr_getaddr(
+                cmsg: *mut crate::cmsghdr,
+                index: c_int,
+            ) -> *mut crate::in6_addr;
+            pub fn inet6_rthdr_getflags(cmsg: *const crate::cmsghdr, index: c_int) -> c_int;
+        }
+    }
+}
+
+cfg_if! {
     // `syscall` is prohibited on tvOS and watchOS (and strongly discouraged
     // on iOS and macOS).
     if #[cfg(not(any(

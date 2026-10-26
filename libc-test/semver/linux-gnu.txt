@@ -648,6 +648,12 @@ inet6_opt_get_val
 inet6_opt_init
 inet6_opt_next
 inet6_opt_set_val
+inet6_option_alloc
+inet6_option_append
+inet6_option_find
+inet6_option_init
+inet6_option_next
+inet6_option_space
 inet6_rth_add
 inet6_rth_getaddr
 inet6_rth_init

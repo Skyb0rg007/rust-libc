@@ -929,6 +929,32 @@ extern "C" {
     pub fn inet6_rth_segments(bp: *const c_void) -> c_int;
     pub fn inet6_rth_getaddr(bp: *const c_void, index: c_int) -> *mut crate::in6_addr;
 
+    // RFC 2292, obsoleted by RFC 3542
+    pub fn inet6_option_space(nbytes: c_int) -> c_int;
+    pub fn inet6_option_init(
+        bp: *mut c_void,
+        cmsgp: *mut *mut crate::cmsghdr,
+        type_: c_int,
+    ) -> c_int;
+    pub fn inet6_option_append(
+        cmsg: *mut crate::cmsghdr,
+        typep: *const u8,
+        multx: c_int,
+        plusy: c_int,
+    ) -> c_int;
+    pub fn inet6_option_alloc(
+        cmsg: *mut crate::cmsghdr,
+        datalen: c_int,
+        multx: c_int,
+        plusy: c_int,
+    ) -> *mut u8;
+    pub fn inet6_option_next(cmsg: *const crate::cmsghdr, tptrp: *mut *mut u8) -> c_int;
+    pub fn inet6_option_find(
+        cmsg: *const crate::cmsghdr,
+        tptrp: *mut *mut u8,
+        type_: c_int,
+    ) -> c_int;
+
     pub fn fgetspent_r(
         fp: *mut crate::FILE,
         spbuf: *mut crate::spwd,
