@@ -1264,6 +1264,265 @@ cfg_if! {
                 }
             }
         }
+
+        // Neighbor discovery option extensions in `netinet/icmp6.h`
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "emscripten",
+                target_os = "l4re",
+                target_os = "linux"
+            ))] {
+                s2! {
+                    pub struct nd_opt_adv_interval {
+                        pub nd_opt_adv_interval_type: u8,
+                        pub nd_opt_adv_interval_len: u8,
+                        pub nd_opt_adv_interval_reserved: u16,
+                        pub nd_opt_adv_interval_ival: u32,
+                    }
+
+                    pub struct nd_opt_home_agent_info {
+                        pub nd_opt_home_agent_info_type: u8,
+                        pub nd_opt_home_agent_info_len: u8,
+                        pub nd_opt_home_agent_info_reserved: u16,
+                        pub nd_opt_home_agent_info_preference: u16,
+                        pub nd_opt_home_agent_info_lifetime: u16,
+                    }
+                }
+
+                pub const ND_OPT_RTR_ADV_INTERVAL: u8 = 7;
+                pub const ND_OPT_HOME_AGENT_INFO: u8 = 8;
+
+                pub const ND_OPT_PI_FLAG_RADDR: u8 = 0x20;
+            }
+        }
+
+        // The KAME-derived headers: Bionic and the BSDs
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "netbsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            ))] {
+                s2! {
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct nd_opt_route_info {
+                        pub nd_opt_rti_type: u8,
+                        pub nd_opt_rti_len: u8,
+                        pub nd_opt_rti_prefixlen: u8,
+                        pub nd_opt_rti_flags: u8,
+                        pub nd_opt_rti_lifetime: u32,
+                    }
+
+                    // Apple's version ends with an `in6_addr`
+                    #[cfg(not(target_vendor = "apple"))]
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct nd_opt_rdnss {
+                        pub nd_opt_rdnss_type: u8,
+                        pub nd_opt_rdnss_len: u8,
+                        pub nd_opt_rdnss_reserved: u16,
+                        pub nd_opt_rdnss_lifetime: u32,
+                    }
+
+                    #[cfg_attr(not(target_os = "netbsd"), repr(packed))]
+                    pub struct nd_opt_dnssl {
+                        pub nd_opt_dnssl_type: u8,
+                        pub nd_opt_dnssl_len: u8,
+                        pub nd_opt_dnssl_reserved: u16,
+                        pub nd_opt_dnssl_lifetime: u32,
+                        #[cfg(target_vendor = "apple")]
+                        pub nd_opt_dnssl_domains: [u8; 8],
+                    }
+
+                    #[cfg(any(
+                        target_os = "freebsd",
+                        target_os = "netbsd",
+                        target_vendor = "apple",
+                    ))]
+                    pub struct nd_opt_nonce {
+                        pub nd_opt_nonce_type: u8,
+                        pub nd_opt_nonce_len: u8,
+                        pub nd_opt_nonce: [u8; ND_OPT_NONCE_LEN],
+                    }
+
+                    #[cfg(any(
+                        target_os = "android",
+                        target_os = "freebsd",
+                        target_vendor = "apple",
+                    ))]
+                    #[repr(packed)]
+                    pub struct nd_opt_pref64 {
+                        pub nd_opt_pref64_type: u8,
+                        pub nd_opt_pref64_len: u8,
+                        #[cfg(target_os = "android")]
+                        pub nd_opt_pref64_lifetime_plc: u16,
+                        #[cfg(target_os = "android")]
+                        pub nd_opt_pref64_prefix: [u8; 12],
+                        #[cfg(target_os = "freebsd")]
+                        pub nd_opt_pref64_sl_plc: u16,
+                        #[cfg(target_os = "freebsd")]
+                        pub nd_opt_prefix: [c_char; 12],
+                        #[cfg(target_vendor = "apple")]
+                        pub nd_opt_pref64_scaled_lifetime_plc: u16,
+                        #[cfg(target_vendor = "apple")]
+                        pub nd_opt_pref64_prefix: [u32; 3],
+                    }
+
+                    #[cfg(target_os = "android")]
+                    pub struct nd_opt_captive_portal {
+                        pub nd_opt_captive_portal_type: u8,
+                        pub nd_opt_captive_portal_len: u8,
+                        pub nd_opt_captive_portal_uri: [u8; 0],
+                    }
+
+                    #[cfg(target_vendor = "apple")]
+                    #[repr(packed)]
+                    pub struct nd_opt_pvd {
+                        pub nd_opt_pvd_type: u8,
+                        pub nd_opt_pvd_len: u8,
+                        pub nd_opt_flags_delay: [u8; 2],
+                        pub nd_opt_pvd_seq: u16,
+                        pub nd_opt_pvd_id: [u8; 1],
+                    }
+
+                    #[cfg(target_vendor = "apple")]
+                    pub struct nd_opt_dnr {
+                        pub nd_opt_dnr_type: u8,
+                        pub nd_opt_dnr_len: u8,
+                        pub nd_opt_dnr_svc_priority: [u8; 2],
+                        pub nd_opt_dnr_lifetime: [u8; 4],
+                        pub nd_opt_dnr_adn_len: [u8; 2],
+                        pub nd_opt_dnr_continuation: [u8; 1],
+                    }
+                }
+
+                pub const ND_RA_FLAG_RTPREF_MASK: u8 = 0x18;
+                pub const ND_RA_FLAG_RTPREF_HIGH: u8 = 0x08;
+                pub const ND_RA_FLAG_RTPREF_MEDIUM: u8 = 0x00;
+                pub const ND_RA_FLAG_RTPREF_LOW: u8 = 0x18;
+                pub const ND_RA_FLAG_RTPREF_RSV: u8 = 0x10;
+                #[cfg(target_os = "netbsd")]
+                pub const ND_RA_FLAG_PROXY: u8 = 0x04;
+
+                #[cfg(any(target_os = "freebsd", target_os = "netbsd"))]
+                pub const ND_OPT_PI_FLAG_ROUTER: u8 = 0x20;
+                #[cfg(target_os = "freebsd")]
+                pub const ND_OPT_PI_FLAG_DHCP6PD: u8 = 0x10;
+
+                #[cfg(target_os = "freebsd")]
+                pub const ND_OPT_RTI_FLAG_PRF_MASK: u8 = 0x18;
+
+                cfg_if! {
+                    if #[cfg(any(target_os = "android", target_os = "netbsd"))] {
+                        pub const ND_OPT_ADVINTERVAL: u8 = 7;
+                        pub const ND_OPT_HOMEAGENT_INFO: u8 = 8;
+                        pub const ND_OPT_SOURCE_ADDRLIST: u8 = 9;
+                        pub const ND_OPT_TARGET_ADDRLIST: u8 = 10;
+                        pub const ND_OPT_MAP: u8 = 23;
+                    }
+                }
+                #[cfg(any(target_os = "freebsd", target_os = "netbsd", target_vendor = "apple"))]
+                pub const ND_OPT_NONCE: u8 = 14;
+                #[cfg(target_vendor = "apple")]
+                pub const ND_OPT_PVD: u8 = 21;
+                cfg_if! {
+                    if #[cfg(target_os = "dragonfly")] {
+                        pub const ND_OPT_ROUTE_INFO: u8 = 200;
+                    } else {
+                        pub const ND_OPT_ROUTE_INFO: u8 = 24;
+                    }
+                }
+                pub const ND_OPT_RDNSS: u8 = 25;
+                pub const ND_OPT_DNSSL: u8 = 31;
+                #[cfg(any(target_os = "android", target_vendor = "apple"))]
+                pub const ND_OPT_CAPTIVE_PORTAL: u8 = 37;
+                #[cfg(any(target_os = "android", target_os = "freebsd", target_vendor = "apple"))]
+                pub const ND_OPT_PREF64: u8 = 38;
+                #[cfg(target_vendor = "apple")]
+                pub const ND_OPT_DNR: u8 = 144;
+                cfg_if! {
+                    if #[cfg(target_os = "freebsd")] {
+                        pub const ND_OPT_MAX: u8 = 38;
+                    } else if #[cfg(any(target_os = "dragonfly", target_os = "netbsd"))] {
+                        pub const ND_OPT_MAX: u8 = 31;
+                    }
+                }
+
+                #[cfg(any(target_os = "freebsd", target_os = "netbsd", target_vendor = "apple"))]
+                pub const ND_OPT_NONCE_LEN: usize = 6;
+
+                cfg_if! {
+                    if #[cfg(target_vendor = "apple")] {
+                        pub const ND_OPT_PREF64_SCALED_LIFETIME_MASK: u16 = 0xfff8;
+                        pub const ND_OPT_PREF64_PLC_MASK: u16 = 0x0007;
+                        pub const ND_OPT_PREF64_LIFETIME_MAX: u16 = 65528;
+                        pub const ND_OPT_PREF64_PLC_32: u16 = 5;
+                        pub const ND_OPT_PREF64_PLC_40: u16 = 4;
+                        pub const ND_OPT_PREF64_PLC_48: u16 = 3;
+                        pub const ND_OPT_PREF64_PLC_56: u16 = 2;
+                        pub const ND_OPT_PREF64_PLC_64: u16 = 1;
+                        pub const ND_OPT_PREF64_PLC_96: u16 = 0;
+
+                        pub const ND_OPT_PVD_FLAGS_HTTP: u8 = 0x80;
+                        pub const ND_OPT_PVD_FLAGS_LEGACY: u8 = 0x40;
+                        pub const ND_OPT_PVD_FLAGS_RA: u8 = 0x20;
+                        pub const ND_OPT_PVD_DELAY_MASK: u8 = 0x0f;
+                    }
+                }
+            }
+        }
+
+        // illumos and Solaris
+        cfg_if! {
+            if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
+                s2! {
+                    pub struct nd_opt_lla {
+                        pub nd_opt_lla_type: u8,
+                        pub nd_opt_lla_len: u8,
+                        #[custom_default([0; ND_MAX_HDW_LEN])]
+                        pub nd_opt_lla_hdw_addr: [u8; ND_MAX_HDW_LEN],
+                    }
+
+                    pub struct nd_opt_dns_resolver {
+                        pub nd_opt_dnsr_type: u8,
+                        pub nd_opt_dnsr_len: u8,
+                        pub nd_opt_dnsr_reserved: u16,
+                        pub nd_opt_dnsr_lifetime: u32,
+                        pub nd_opt_dnsr_addr: [in6_addr; 0],
+                    }
+
+                    pub struct nd_opt_dns_sl {
+                        pub nd_opt_dnss_type: u8,
+                        pub nd_opt_dnss_len: u8,
+                        pub nd_opt_dnss_reserved: u16,
+                        pub nd_opt_dnss_lifetime: u32,
+                        pub nd_opt_dnss_names: [u8; 0],
+                    }
+                }
+
+                pub const ND_OPT_DNS_RESOLVER: u8 = 25;
+                pub const ND_OPT_DNS_SEARCHLIST: u8 = 31;
+
+                pub const ND_MAX_HDW_LEN: usize = 64;
+            }
+        }
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_vendor = "apple",
+            ))] {
+                pub const ND_RA_FLAG_HA: u8 = 0x20;
+            } else if #[cfg(not(any(
+                target_os = "illumos",
+                target_os = "openbsd",
+                target_os = "solaris",
+            )))] {
+                pub const ND_RA_FLAG_HOME_AGENT: u8 = 0x20;
+            }
+        }
     }
 }
 

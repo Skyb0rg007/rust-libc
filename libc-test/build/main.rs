@@ -1179,9 +1179,16 @@ fn test_solarish(t: &Target) {
             // `uc_filler` fields to use for brand-specific state.
             ("ucontext_t", "uc_filler" | "uc_brand_data") if illumos => true,
 
+            // flexible array members
+            ("nd_opt_dns_resolver", "nd_opt_dnsr_addr") => true,
+            ("nd_opt_dns_sl", "nd_opt_dnss_names") => true,
+
             _ => false,
         }
     });
+
+    // These contain flexible array members, so can't be passed by value
+    cfg.skip_roundtrip(|s| matches!(s, "nd_opt_dns_resolver" | "nd_opt_dns_sl"));
 
     cfg.skip_fn(move |func| {
         // skip those that are manually verified
@@ -2481,9 +2488,15 @@ fn test_android(t: &Target) {
             // uc_sigmask and uc_sigmask64 are an anonymous union
             ("ucontext_t", "uc_sigmask" | "uc_sigmask64" | "uc_sigmask__c_anonymous_union") => true,
 
+            // flexible array member
+            ("nd_opt_captive_portal", "nd_opt_captive_portal_uri") => true,
+
             _ => false,
         }
     });
+
+    // `nd_opt_captive_portal` contains a flexible array member, so can't be passed by value
+    cfg.skip_roundtrip(|s| s == "nd_opt_captive_portal");
 
     cfg.build_test("../src/lib.rs", "ctest_output.rs");
 
