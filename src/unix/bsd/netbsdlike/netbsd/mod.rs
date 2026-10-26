@@ -957,6 +957,14 @@ pub const IP_PKTINFO: c_int = 25;
 pub const IP_RECVPKTINFO: c_int = 26;
 pub const IPV6_JOIN_GROUP: c_int = 12;
 pub const IPV6_LEAVE_GROUP: c_int = 13;
+pub const IPV6_2292PKTINFO: c_int = 19;
+pub const IPV6_2292HOPLIMIT: c_int = 20;
+pub const IPV6_2292NEXTHOP: c_int = 21;
+pub const IPV6_2292HOPOPTS: c_int = 22;
+pub const IPV6_2292DSTOPTS: c_int = 23;
+pub const IPV6_2292RTHDR: c_int = 24;
+pub const IPV6_2292PKTOPTIONS: c_int = 25;
+pub const IPV6_RTHDR_STRICT: c_int = 1;
 
 pub const TCP_KEEPIDLE: c_int = 3;
 pub const TCP_KEEPINTVL: c_int = 5;

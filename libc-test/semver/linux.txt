@@ -1405,6 +1405,7 @@ IPV6_RTHDR
 IPV6_RTHDRDSTOPTS
 IPV6_RTHDR_LOOSE
 IPV6_RTHDR_STRICT
+IPV6_RTHDR_TYPE_0
 IPV6_TCLASS
 IPV6_TRANSPARENT
 IPV6_UNICAST_IF
@@ -4239,6 +4240,7 @@ input_event
 input_id
 input_keymap_entry
 input_mask
+ip6_mtuinfo
 ip_mreq_source
 ip_mreqn
 ipc_perm
