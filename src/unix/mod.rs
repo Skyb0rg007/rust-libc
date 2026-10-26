@@ -420,7 +420,7 @@ cfg_if! {
     }
 }
 
-// IPv6 definitions from `netinet/in.h`
+// IPv6 definitions from `netinet/in.h` and `netinet/ip6.h`
 cfg_if! {
     if #[cfg(any(
         target_os = "android",
@@ -445,6 +445,336 @@ cfg_if! {
                 #[custom_default(unsafe { mem::zeroed() })]
                 pub ip6m_addr: crate::sockaddr_in6,
                 pub ip6m_mtu: u32,
+            }
+        }
+
+        // netinet/ip6.h
+        //
+        // The BSD-derived headers mark these structs as packed. Packing only changes the layout of a
+        // struct with members wider than a byte, so structs made up of only `u8`s aren't marked.
+        //
+        // FIXME(unix): structs containing an `in6_addr` are left out on the platforms that pack them,
+        // since a packed struct can't contain an aligned type in Rust.
+        s2! {
+            pub struct ip6_hdrctl {
+                pub ip6_un1_flow: u32,
+                pub ip6_un1_plen: u16,
+                pub ip6_un1_nxt: u8,
+                pub ip6_un1_hlim: u8,
+            }
+
+            #[cfg(not(any(target_os = "illumos", target_os = "solaris")))]
+            pub struct ip6_ext {
+                pub ip6e_nxt: u8,
+                pub ip6e_len: u8,
+            }
+
+            pub struct ip6_hbh {
+                pub ip6h_nxt: u8,
+                pub ip6h_len: u8,
+            }
+
+            pub struct ip6_dest {
+                pub ip6d_nxt: u8,
+                pub ip6d_len: u8,
+            }
+
+            pub struct ip6_rthdr {
+                pub ip6r_nxt: u8,
+                pub ip6r_len: u8,
+                pub ip6r_type: u8,
+                pub ip6r_segleft: u8,
+            }
+
+            #[cfg(not(target_os = "dragonfly"))]
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct ip6_rthdr0 {
+                pub ip6r0_nxt: u8,
+                pub ip6r0_len: u8,
+                pub ip6r0_type: u8,
+                pub ip6r0_segleft: u8,
+                // The Linux libcs still use the RFC 2292 layout
+                #[cfg(not(any(
+                    target_os = "emscripten",
+                    target_os = "l4re",
+                    target_os = "linux",
+                )))]
+                pub ip6r0_reserved: u32,
+                #[cfg(any(target_os = "emscripten", target_os = "l4re", target_os = "linux"))]
+                pub ip6r0_reserved: u8,
+                #[cfg(any(target_os = "emscripten", target_os = "l4re", target_os = "linux"))]
+                pub ip6r0_slmap: [u8; 3],
+                #[cfg(any(target_os = "emscripten", target_os = "l4re", target_os = "linux"))]
+                pub ip6r0_addr: [in6_addr; 0],
+            }
+
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct ip6_frag {
+                pub ip6f_nxt: u8,
+                pub ip6f_reserved: u8,
+                pub ip6f_offlg: u16,
+                pub ip6f_ident: u32,
+            }
+
+            pub struct ip6_opt {
+                pub ip6o_type: u8,
+                pub ip6o_len: u8,
+            }
+
+            pub struct ip6_opt_jumbo {
+                pub ip6oj_type: u8,
+                pub ip6oj_len: u8,
+                pub ip6oj_jumbo_len: [u8; 4],
+            }
+
+            pub struct ip6_opt_nsap {
+                pub ip6on_type: u8,
+                pub ip6on_len: u8,
+                pub ip6on_src_nsap_len: u8,
+                pub ip6on_dst_nsap_len: u8,
+            }
+
+            pub struct ip6_opt_tunnel {
+                pub ip6ot_type: u8,
+                pub ip6ot_len: u8,
+                pub ip6ot_encap_limit: u8,
+            }
+
+            pub struct ip6_opt_router {
+                pub ip6or_type: u8,
+                pub ip6or_len: u8,
+                pub ip6or_value: [u8; 2],
+            }
+        }
+
+        s_no_extra_traits2! {
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct ip6_hdr {
+                pub ip6_ctlun: __c_anonymous_ip6_ctlun,
+                pub ip6_src: in6_addr,
+                pub ip6_dst: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            #[unsafe(union_default_via_zeroed)]
+            pub union __c_anonymous_ip6_ctlun {
+                pub ip6_un1: ip6_hdrctl,
+                pub ip6_un2_vfc: u8,
+            }
+        }
+
+        pub const IP6OPT_TYPE_SKIP: u8 = 0x00;
+        pub const IP6OPT_TYPE_DISCARD: u8 = 0x40;
+        pub const IP6OPT_TYPE_FORCEICMP: u8 = 0x80;
+        pub const IP6OPT_TYPE_ICMP: u8 = 0xc0;
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "emscripten",
+                target_os = "l4re",
+                target_os = "linux"
+            ))] {
+                pub const IP6OPT_TYPE_MUTABLE: u8 = 0x20;
+            } else {
+                pub const IP6OPT_MUTABLE: u8 = 0x20;
+            }
+        }
+
+        pub const IP6OPT_PAD1: u8 = 0x00;
+        pub const IP6OPT_PADN: u8 = 0x01;
+        pub const IP6OPT_JUMBO: u8 = 0xc2;
+        pub const IP6OPT_NSAP_ADDR: u8 = 0xc3;
+        pub const IP6OPT_TUNNEL_LIMIT: u8 = 0x04;
+        pub const IP6OPT_ROUTER_ALERT: u8 = 0x05;
+
+        pub const IP6OPT_JUMBO_LEN: u8 = 6;
+
+        cfg_if! {
+            if #[cfg(target_endian = "big")] {
+                pub const IP6F_OFF_MASK: u16 = 0xfff8;
+                pub const IP6F_RESERVED_MASK: u16 = 0x0006;
+                pub const IP6F_MORE_FRAG: u16 = 0x0001;
+
+                pub const IP6_ALERT_MLD: u16 = 0x0000;
+                pub const IP6_ALERT_RSVP: u16 = 0x0001;
+                pub const IP6_ALERT_AN: u16 = 0x0002;
+            } else {
+                pub const IP6F_OFF_MASK: u16 = 0xf8ff;
+                pub const IP6F_RESERVED_MASK: u16 = 0x0600;
+                pub const IP6F_MORE_FRAG: u16 = 0x0100;
+
+                pub const IP6_ALERT_MLD: u16 = 0x0000;
+                pub const IP6_ALERT_RSVP: u16 = 0x0100;
+                pub const IP6_ALERT_AN: u16 = 0x0200;
+            }
+        }
+
+        cfg_if! {
+            if #[cfg(any(
+                all(target_os = "linux", target_env = "gnu"),
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "netbsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            ))] {
+                pub const IPV6_VERSION: u8 = 0x60;
+                pub const IPV6_VERSION_MASK: u8 = 0xf0;
+
+                cfg_if! {
+                    if #[cfg(target_endian = "big")] {
+                        pub const IPV6_FLOWINFO_MASK: u32 = 0x0fffffff;
+                        pub const IPV6_FLOWLABEL_MASK: u32 = 0x000fffff;
+                    } else {
+                        pub const IPV6_FLOWINFO_MASK: u32 = 0xffffff0f;
+                        pub const IPV6_FLOWLABEL_MASK: u32 = 0xffff0f00;
+                    }
+                }
+            }
+        }
+
+        #[cfg(any(
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "illumos",
+            target_os = "solaris",
+            target_vendor = "apple",
+        ))]
+        pub const IP6OPT_EID: u8 = 0x8a;
+
+        // The KAME-derived headers: Bionic and the BSDs
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "netbsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            ))] {
+                pub const IP6OPT_MINLEN: u8 = 2;
+                #[cfg(not(target_os = "openbsd"))]
+                pub const IP6OPT_RTALERT: u8 = 0x05;
+                pub const IP6OPT_RTALERT_LEN: u8 = 4;
+                pub const IP6OPT_RTALERT_MLD: u16 = 0;
+                pub const IP6OPT_RTALERT_RSVP: u16 = 1;
+                pub const IP6OPT_RTALERT_ACTNET: u16 = 2;
+
+                #[cfg(not(target_os = "freebsd"))]
+                pub const IP6TOS_CE: u8 = 0x01;
+                #[cfg(not(target_os = "freebsd"))]
+                pub const IP6TOS_ECT: u8 = 0x02;
+
+                pub const IPV6_MAXHLIM: c_int = 255;
+                pub const IPV6_DEFHLIM: c_int = 64;
+                #[cfg(target_os = "dragonfly")]
+                pub const IPV6_MINHLIM: c_int = 40;
+                pub const IPV6_HLIMDEC: c_int = 1;
+                pub const IPV6_MMTU: c_int = 1280;
+                pub const IPV6_MAXPACKET: c_int = 65535;
+                #[cfg(any(target_os = "freebsd", target_vendor = "apple"))]
+                pub const IPV6_MAXOPTHDR: c_int = 2048;
+                cfg_if! {
+                    if #[cfg(target_vendor = "apple")] {
+                        pub const IPV6_FRAGTTL: c_int = 60;
+                    } else if #[cfg(not(target_os = "freebsd"))] {
+                        pub const IPV6_FRAGTTL: c_int = 120;
+                    }
+                }
+            }
+        }
+
+        // illumos and Solaris
+        cfg_if! {
+            if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
+                s2! {
+                    pub struct ip6_opt_home_address {
+                        pub ip6oh_type: u8,
+                        pub ip6oh_len: u8,
+                        pub ip6oh_addr: [u8; 16],
+                    }
+
+                    pub struct ip6_opt_binding_update {
+                        pub ip6ou_type: u8,
+                        pub ip6ou_len: u8,
+                        pub ip6ou_flags: u8,
+                        pub ip6ou_prefixlen: u8,
+                        pub ip6ou_seqno: [u8; 2],
+                        pub ip6ou_lifetime: [u8; 4],
+                        pub ip6ou_coa: [u8; 16],
+                    }
+
+                    pub struct ip6_opt_binding_ack {
+                        pub ip6oa_type: u8,
+                        pub ip6oa_len: u8,
+                        pub ip6oa_status: u8,
+                        pub ip6oa_seqno: [u8; 2],
+                        pub ip6oa_lifetime: [u8; 4],
+                        pub ip6oa_refresh: [u8; 4],
+                    }
+
+                    pub struct ip6_opt_binding_request {
+                        pub ip6or_type: u8,
+                        pub ip6or_len: u8,
+                    }
+
+                    pub struct ip6_opt_labeled_security {
+                        pub ip6ol_type: u8,
+                        pub ip6ol_len: u8,
+                        pub ip6ol_doi: [u8; 4],
+                    }
+                }
+
+                pub const IP6OPT_BINDING_UPDATE: u8 = 0xc6;
+                pub const IP6OPT_BINDING_ACK: u8 = 0x07;
+                pub const IP6OPT_BINDING_REQ: u8 = 0x08;
+                pub const IP6OPT_HOME_ADDRESS: u8 = 0xc9;
+                pub const IP6OPT_LS: u8 = 0x0a;
+
+                pub const IP6_MAX_OPT_LENGTH: c_int = 255;
+
+                pub const IP6_BUF_ACK: u8 = 0x80;
+                pub const IP6_BUF_HOME: u8 = 0x40;
+                pub const IP6_BUF_COA: u8 = 0x20;
+                pub const IP6_BUF_ROUTER: u8 = 0x10;
+
+                pub const IP6LS_DOI_V4: u32 = 0;
+
+                pub const IP6LS_TT_LEVEL: u8 = 1;
+                pub const IP6LS_TT_VECTOR: u8 = 2;
+                pub const IP6LS_TT_ENUM: u8 = 3;
+                pub const IP6LS_TT_RANGES: u8 = 4;
+                pub const IP6LS_TT_V4: u8 = 5;
+                pub const IP6LS_TT_DEST: u8 = 6;
             }
         }
     }
@@ -521,6 +851,23 @@ f! {
     }
     pub const safe fn ntohs(netshort: u16) -> u16 {
         u16::from_be(netshort)
+    }
+
+    #[cfg(any(
+        target_os = "android",
+        target_os = "dragonfly",
+        target_os = "emscripten",
+        target_os = "freebsd",
+        target_os = "illumos",
+        target_os = "l4re",
+        target_os = "linux",
+        target_os = "netbsd",
+        target_os = "openbsd",
+        target_os = "solaris",
+        target_vendor = "apple",
+    ))]
+    pub const safe fn IP6OPT_TYPE(o: u8) -> u8 {
+        o & 0xc0
     }
 }
 

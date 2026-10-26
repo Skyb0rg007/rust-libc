@@ -209,6 +209,7 @@ fn test_apple(t: &Target) {
         "netinet/icmp6.h",
         "netinet6/scope6_var.h",
         (macos, "netinet6/in6_var.h"),
+        "netinet/ip6.h",
         "os/clock.h",
         "os/lock.h",
         "os/signpost.h",
@@ -436,6 +437,7 @@ fn test_openbsd(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "net/bpf.h",
         "regex.h",
         "resolv.h",
@@ -984,6 +986,7 @@ fn test_solarish(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "poll.h",
         "port.h",
         "pthread.h",
@@ -1133,8 +1136,13 @@ fn test_solarish(t: &Target) {
     });
 
     cfg.skip_struct_field_type(move |struct_, field| {
-        // aio_buf is "volatile void*"
-        struct_.ident() == "aiocb" && field.ident() == "aio_buf"
+        match (struct_.ident(), field.ident()) {
+            // aio_buf is "volatile void*"
+            ("aiocb", "aio_buf") => true,
+            // `ip6_ctlun` is an anonymous union
+            ("ip6_hdr", "ip6_ctlun") => true,
+            _ => false,
+        }
     });
 
     cfg.skip_struct_field(move |s, field| {
@@ -1278,6 +1286,7 @@ fn test_netbsd(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "poll.h",
         "pthread.h",
         "pwd.h",
@@ -1459,6 +1468,8 @@ fn test_netbsd(t: &Target) {
             ("sigaction", "sa_sigaction") => true,
             // aio_buf is "volatile void*" and Rust doesn't understand volatile
             ("aiocb", "aio_buf") => true,
+            // `ip6_ctlun` is an anonymous union
+            ("ip6_hdr", "ip6_ctlun") => true,
             _ => false,
         }
     });
@@ -1574,6 +1585,7 @@ fn test_dragonflybsd(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "paths.h",
         "poll.h",
         "pthread.h",
@@ -2004,6 +2016,7 @@ fn test_android(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "netpacket/packet.h",
         "poll.h",
         "pthread.h",
@@ -2532,6 +2545,7 @@ fn test_freebsd(t: &Target) {
         "netinet/udp.h",
         "netinet/icmp6.h",
         "netinet6/in6_var.h",
+        "netinet/ip6.h",
         "paths.h",
         "poll.h",
         "pthread.h",
@@ -3158,6 +3172,7 @@ fn test_emscripten(t: &Target) {
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
+        "netinet/ip6.h",
         "netpacket/packet.h",
         "poll.h",
         "pthread.h",
@@ -3363,6 +3378,8 @@ fn test_emscripten(t: &Target) {
             ("ifaddrs", "ifa_ifu") => true,
             // sighandler_t type is super weird
             ("sigaction", "sa_sigaction") => true,
+            // `ip6_ctlun` is an anonymous union
+            ("ip6_hdr", "ip6_ctlun") => true,
             _ => false,
         }
     });
@@ -3371,6 +3388,8 @@ fn test_emscripten(t: &Target) {
         match (struct_.ident(), field.ident()) {
             // _sigev_un is an anonymous union
             ("sigevent", "_sigev_un") => true,
+            // `ip6r0_addr` is a flexible array member
+            ("ip6_rthdr0", "ip6r0_addr") => true,
             // this is actually a union on linux, so we can't represent it well and
             // just insert some padding.
             ("siginfo_t", "_pad") => true,
@@ -3388,6 +3407,9 @@ fn test_emscripten(t: &Target) {
             _ => false,
         }
     });
+
+    // `ip6_rthdr0` contains a flexible array member, so can't be passed by value
+    cfg.skip_roundtrip(|s| s == "ip6_rthdr0");
 
     cfg.build_test("../src/lib.rs", "ctest_output.rs");
 }
@@ -3996,6 +4018,7 @@ fn test_linux(t: &Target) {
         "netdb.h",
         "netinet/in.h",
         "netinet/ip.h",
+        "netinet/ip6.h",
         "netinet/tcp.h",
         "netinet/udp.h",
         "netinet/icmp6.h",
@@ -4979,6 +5002,8 @@ fn test_linux(t: &Target) {
             ("utmpx", "ut_exit") if musl => true,
             // `can_addr` is an anonymous union
             ("sockaddr_can", "can_addr") => true,
+            // `ip6_ctlun` is an anonymous union
+            ("ip6_hdr", "ip6_ctlun") => true,
             // `anonymous_1` is an anonymous union
             ("ptp_perout_request", "anonymous_1") => true,
             // `anonymous_2` is an anonymous union
@@ -5094,6 +5119,7 @@ fn test_linux(t: &Target) {
             // FAM
             ("af_alg_iv", "iv") => true,
             ("file_handle", "f_handle") if musl || uclibc => true,
+            ("ip6_rthdr0", "ip6r0_addr") if musl => true,
             // FIXME(ctest): ctest does not translate the rust code which computes the padding size
             ("pthread_cond_t", "__padding") if l4re => true,
             (
@@ -5122,6 +5148,7 @@ fn test_linux(t: &Target) {
         "fanotify_event_info_fid" => true,
         "cmsghdr" => true,
         "bcm_msg_head" => true,
+        "ip6_rthdr0" => true,
 
         // FIXME(linux): the call ABI of max_align_t is incorrect on these platforms:
         "max_align_t" if x86_32 => true,
