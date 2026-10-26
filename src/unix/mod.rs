@@ -420,7 +420,7 @@ cfg_if! {
     }
 }
 
-// IPv6 definitions from `netinet/in.h` and `netinet/ip6.h`
+// IPv6 definitions from `netinet/in.h`, `netinet/ip6.h` and `netinet/icmp6.h`
 cfg_if! {
     if #[cfg(any(
         target_os = "android",
@@ -775,6 +775,493 @@ cfg_if! {
                 pub const IP6LS_TT_RANGES: u8 = 4;
                 pub const IP6LS_TT_V4: u8 = 5;
                 pub const IP6LS_TT_DEST: u8 = 6;
+            }
+        }
+
+        // netinet/icmp6.h
+        s2! {
+            pub struct nd_opt_hdr {
+                pub nd_opt_type: u8,
+                pub nd_opt_len: u8,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct nd_opt_prefix_info {
+                pub nd_opt_pi_type: u8,
+                pub nd_opt_pi_len: u8,
+                pub nd_opt_pi_prefix_len: u8,
+                pub nd_opt_pi_flags_reserved: u8,
+                pub nd_opt_pi_valid_time: u32,
+                pub nd_opt_pi_preferred_time: u32,
+                pub nd_opt_pi_reserved2: u32,
+                pub nd_opt_pi_prefix: in6_addr,
+            }
+
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct nd_opt_rd_hdr {
+                pub nd_opt_rh_type: u8,
+                pub nd_opt_rh_len: u8,
+                pub nd_opt_rh_reserved1: u16,
+                pub nd_opt_rh_reserved2: u32,
+            }
+
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct nd_opt_mtu {
+                pub nd_opt_mtu_type: u8,
+                pub nd_opt_mtu_len: u8,
+                pub nd_opt_mtu_reserved: u16,
+                pub nd_opt_mtu_mtu: u32,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct rr_pco_match {
+                pub rpm_code: u8,
+                pub rpm_len: u8,
+                pub rpm_ordinal: u8,
+                pub rpm_matchlen: u8,
+                pub rpm_minlen: u8,
+                pub rpm_maxlen: u8,
+                pub rpm_reserved: u16,
+                pub rpm_prefix: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct rr_pco_use {
+                pub rpu_uselen: u8,
+                pub rpu_keeplen: u8,
+                pub rpu_ramask: u8,
+                pub rpu_raflags: u8,
+                pub rpu_vltime: u32,
+                pub rpu_pltime: u32,
+                pub rpu_flags: u32,
+                pub rpu_prefix: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct rr_result {
+                pub rrr_flags: u16,
+                pub rrr_ordinal: u8,
+                pub rrr_matchedlen: u8,
+                pub rrr_ifid: u32,
+                pub rrr_prefix: in6_addr,
+            }
+        }
+
+        s_no_extra_traits2! {
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct icmp6_hdr {
+                pub icmp6_type: u8,
+                pub icmp6_code: u8,
+                pub icmp6_cksum: u16,
+                pub icmp6_dataun: __c_anonymous_icmp6_dataun,
+            }
+
+            #[unsafe(union_default_via_zeroed)]
+            pub union __c_anonymous_icmp6_dataun {
+                pub icmp6_un_data32: [u32; 1],
+                pub icmp6_un_data16: [u16; 2],
+                pub icmp6_un_data8: [u8; 4],
+            }
+
+            pub struct nd_router_solicit {
+                pub nd_rs_hdr: icmp6_hdr,
+            }
+
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct nd_router_advert {
+                pub nd_ra_hdr: icmp6_hdr,
+                pub nd_ra_reachable: u32,
+                pub nd_ra_retransmit: u32,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct nd_neighbor_solicit {
+                pub nd_ns_hdr: icmp6_hdr,
+                pub nd_ns_target: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct nd_neighbor_advert {
+                pub nd_na_hdr: icmp6_hdr,
+                pub nd_na_target: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct nd_redirect {
+                pub nd_rd_hdr: icmp6_hdr,
+                pub nd_rd_target: in6_addr,
+                pub nd_rd_dst: in6_addr,
+            }
+
+            #[cfg(not(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            )))]
+            pub struct mld_hdr {
+                pub mld_icmp6_hdr: icmp6_hdr,
+                pub mld_addr: in6_addr,
+            }
+
+            #[cfg_attr(
+                any(
+                    target_os = "android",
+                    target_os = "dragonfly",
+                    target_os = "freebsd",
+                    target_os = "openbsd",
+                    target_vendor = "apple",
+                ),
+                repr(packed)
+            )]
+            pub struct icmp6_router_renum {
+                pub rr_hdr: icmp6_hdr,
+                pub rr_segnum: u8,
+                pub rr_flags: u8,
+                pub rr_maxdelay: u16,
+                pub rr_reserved: u32,
+            }
+        }
+
+        pub const ICMP6_DST_UNREACH: u8 = 1;
+        pub const ICMP6_PACKET_TOO_BIG: u8 = 2;
+        pub const ICMP6_TIME_EXCEEDED: u8 = 3;
+        pub const ICMP6_PARAM_PROB: u8 = 4;
+
+        pub const ICMP6_INFOMSG_MASK: u8 = 0x80;
+
+        pub const ICMP6_ECHO_REQUEST: u8 = 128;
+        pub const ICMP6_ECHO_REPLY: u8 = 129;
+        pub const MLD_LISTENER_QUERY: u8 = 130;
+        pub const MLD_LISTENER_REPORT: u8 = 131;
+        #[cfg(not(target_os = "openbsd"))]
+        pub const MLD_LISTENER_REDUCTION: u8 = 132;
+        pub const ICMP6_ROUTER_RENUMBERING: u8 = 138;
+
+        // RFC 2292 names, from before MLD was renamed
+        #[cfg(not(any(target_os = "emscripten", target_os = "l4re", target_os = "linux")))]
+        pub const ICMP6_MEMBERSHIP_QUERY: u8 = 130;
+        #[cfg(not(any(target_os = "emscripten", target_os = "l4re", target_os = "linux")))]
+        pub const ICMP6_MEMBERSHIP_REPORT: u8 = 131;
+        #[cfg(not(any(target_os = "emscripten", target_os = "l4re", target_os = "linux")))]
+        pub const ICMP6_MEMBERSHIP_REDUCTION: u8 = 132;
+
+        pub const ICMP6_DST_UNREACH_NOROUTE: u8 = 0;
+        pub const ICMP6_DST_UNREACH_ADMIN: u8 = 1;
+        #[cfg(not(any(
+            target_os = "emscripten",
+            target_os = "l4re",
+            target_os = "linux",
+            target_os = "openbsd",
+        )))]
+        pub const ICMP6_DST_UNREACH_NOTNEIGHBOR: u8 = 2;
+        pub const ICMP6_DST_UNREACH_BEYONDSCOPE: u8 = 2;
+        pub const ICMP6_DST_UNREACH_ADDR: u8 = 3;
+        pub const ICMP6_DST_UNREACH_NOPORT: u8 = 4;
+
+        pub const ICMP6_TIME_EXCEED_TRANSIT: u8 = 0;
+        pub const ICMP6_TIME_EXCEED_REASSEMBLY: u8 = 1;
+
+        pub const ICMP6_PARAMPROB_HEADER: u8 = 0;
+        pub const ICMP6_PARAMPROB_NEXTHEADER: u8 = 1;
+        pub const ICMP6_PARAMPROB_OPTION: u8 = 2;
+
+        pub const ND_ROUTER_SOLICIT: u8 = 133;
+        pub const ND_ROUTER_ADVERT: u8 = 134;
+        pub const ND_NEIGHBOR_SOLICIT: u8 = 135;
+        pub const ND_NEIGHBOR_ADVERT: u8 = 136;
+        pub const ND_REDIRECT: u8 = 137;
+
+        pub const ND_RA_FLAG_MANAGED: u8 = 0x80;
+        pub const ND_RA_FLAG_OTHER: u8 = 0x40;
+
+        pub const ND_OPT_SOURCE_LINKADDR: u8 = 1;
+        pub const ND_OPT_TARGET_LINKADDR: u8 = 2;
+        pub const ND_OPT_PREFIX_INFORMATION: u8 = 3;
+        pub const ND_OPT_REDIRECTED_HEADER: u8 = 4;
+        pub const ND_OPT_MTU: u8 = 5;
+
+        pub const ND_OPT_PI_FLAG_ONLINK: u8 = 0x80;
+        pub const ND_OPT_PI_FLAG_AUTO: u8 = 0x40;
+
+        pub const ICMP6_RR_FLAGS_TEST: u8 = 0x80;
+        pub const ICMP6_RR_FLAGS_REQRESULT: u8 = 0x40;
+        pub const ICMP6_RR_FLAGS_FORCEAPPLY: u8 = 0x20;
+        pub const ICMP6_RR_FLAGS_SPECSITE: u8 = 0x10;
+        pub const ICMP6_RR_FLAGS_PREVDONE: u8 = 0x08;
+
+        pub const RPM_PCO_ADD: u8 = 1;
+        pub const RPM_PCO_CHANGE: u8 = 2;
+        pub const RPM_PCO_SETGLOBAL: u8 = 3;
+
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "emscripten",
+                target_os = "illumos",
+                target_os = "l4re",
+                target_os = "linux",
+                target_os = "solaris",
+            ))] {
+                pub const ICMP6_RR_PCOUSE_RAFLAGS_ONLINK: u8 = 0x20;
+                pub const ICMP6_RR_PCOUSE_RAFLAGS_AUTO: u8 = 0x10;
+            } else {
+                pub const ICMP6_RR_PCOUSE_RAFLAGS_ONLINK: u8 = 0x80;
+                pub const ICMP6_RR_PCOUSE_RAFLAGS_AUTO: u8 = 0x40;
+            }
+        }
+
+        cfg_if! {
+            if #[cfg(target_endian = "big")] {
+                pub const ND_NA_FLAG_ROUTER: u32 = 0x80000000;
+                pub const ND_NA_FLAG_SOLICITED: u32 = 0x40000000;
+                pub const ND_NA_FLAG_OVERRIDE: u32 = 0x20000000;
+
+                #[cfg(not(any(target_os = "illumos", target_os = "solaris")))]
+                pub const ICMP6_RR_PCOUSE_FLAGS_DECRVLTIME: u32 = 0x80000000;
+                #[cfg(not(any(target_os = "illumos", target_os = "solaris")))]
+                pub const ICMP6_RR_PCOUSE_FLAGS_DECRPLTIME: u32 = 0x40000000;
+
+                pub const ICMP6_RR_RESULT_FLAGS_OOB: u16 = 0x0002;
+                pub const ICMP6_RR_RESULT_FLAGS_FORBIDDEN: u16 = 0x0001;
+            } else {
+                pub const ND_NA_FLAG_ROUTER: u32 = 0x00000080;
+                pub const ND_NA_FLAG_SOLICITED: u32 = 0x00000040;
+                pub const ND_NA_FLAG_OVERRIDE: u32 = 0x00000020;
+
+                #[cfg(not(any(target_os = "illumos", target_os = "solaris")))]
+                pub const ICMP6_RR_PCOUSE_FLAGS_DECRVLTIME: u32 = 0x00000080;
+                #[cfg(not(any(target_os = "illumos", target_os = "solaris")))]
+                pub const ICMP6_RR_PCOUSE_FLAGS_DECRPLTIME: u32 = 0x00000040;
+
+                pub const ICMP6_RR_RESULT_FLAGS_OOB: u16 = 0x0200;
+                pub const ICMP6_RR_RESULT_FLAGS_FORBIDDEN: u16 = 0x0100;
+            }
+        }
+
+        #[cfg(any(
+            target_os = "android",
+            target_os = "illumos",
+            target_os = "netbsd",
+            target_os = "solaris",
+        ))]
+        pub const MLD_MINLEN: c_int = 24;
+
+        #[cfg(all(target_os = "linux", target_env = "gnu"))]
+        pub const ICMPV6_EXT_ECHO_REQUEST: u8 = 160;
+        #[cfg(all(target_os = "linux", target_env = "gnu"))]
+        pub const ICMPV6_EXT_ECHO_REPLY: u8 = 161;
+
+        // The KAME-derived headers: Bionic and the BSDs
+        cfg_if! {
+            if #[cfg(any(
+                target_os = "android",
+                target_os = "dragonfly",
+                target_os = "freebsd",
+                target_os = "netbsd",
+                target_os = "openbsd",
+                target_vendor = "apple",
+            ))] {
+                pub const ICMPV6_PLD_MAXLEN: c_int = 1232;
+
+                #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "netbsd"))]
+                pub const ICMP6_DST_UNREACH_POLICY: u8 = 5;
+                #[cfg(any(target_os = "android", target_os = "netbsd"))]
+                pub const ICMP6_DST_UNREACH_REJROUTE: u8 = 6;
+                #[cfg(any(target_os = "android", target_os = "netbsd"))]
+                pub const ICMP6_DST_UNREACH_SOURCERT: u8 = 7;
+                #[cfg(target_os = "freebsd")]
+                pub const ICMP6_DST_UNREACH_REJECT: u8 = 6;
+                #[cfg(target_os = "freebsd")]
+                pub const ICMP6_DST_UNREACH_SRCROUTE: u8 = 7;
+
+                #[cfg(target_os = "netbsd")]
+                pub const ICMP6_PARAMPROB_FRAGMENT: u8 = 3;
+                #[cfg(target_vendor = "apple")]
+                pub const ICMP6_PARAMPROB_FIRSTFRAG_INCOMP_HDR: u8 = 3;
+
+                pub const MLD_LISTENER_DONE: u8 = 132;
+                #[cfg(not(target_os = "dragonfly"))]
+                pub const MLDV2_LISTENER_REPORT: u8 = 143;
+                pub const MLD_MTRACE_RESP: u8 = 200;
+                pub const MLD_MTRACE: u8 = 201;
+                #[cfg(target_os = "dragonfly")]
+                pub const ICMP6_HADISCOV_REQUEST: u8 = 202;
+                #[cfg(target_os = "dragonfly")]
+                pub const ICMP6_HADISCOV_REPLY: u8 = 203;
+
+                cfg_if! {
+                    if #[cfg(target_os = "dragonfly")] {
+                        pub const ICMP6_MAXTYPE: u8 = 203;
+                    } else {
+                        pub const ICMP6_MAXTYPE: u8 = 201;
+                    }
+                }
+
+                cfg_if! {
+                    if #[cfg(not(any(target_os = "android", target_os = "openbsd")))] {
+                        pub const MLD6_LISTENER_QUERY: u8 = MLD_LISTENER_QUERY;
+                        pub const MLD6_LISTENER_REPORT: u8 = MLD_LISTENER_REPORT;
+                        pub const MLD6_LISTENER_DONE: u8 = MLD_LISTENER_DONE;
+                        pub const MLD6_MTRACE_RESP: u8 = MLD_MTRACE_RESP;
+                        pub const MLD6_MTRACE: u8 = MLD_MTRACE;
+                    }
+                }
+
+                pub const ICMP6_ROUTER_RENUMBERING_COMMAND: u8 = 0;
+                pub const ICMP6_ROUTER_RENUMBERING_RESULT: u8 = 1;
+                pub const ICMP6_ROUTER_RENUMBERING_SEQNUM_RESET: u8 = 255;
+
+                pub const ND_REDIRECT_ONLINK: c_int = 0;
+                pub const ND_REDIRECT_ROUTER: c_int = 1;
+
+                pub const RPM_PCO_MAX: u8 = 4;
+            }
+        }
+
+        // illumos and Solaris
+        cfg_if! {
+            if #[cfg(any(target_os = "illumos", target_os = "solaris"))] {
+                s2! {
+                    pub struct mld2mar {
+                        pub mld2mar_type: u8,
+                        pub mld2mar_auxlen: u8,
+                        pub mld2mar_numsrc: u16,
+                        pub mld2mar_group: in6_addr,
+                    }
+                }
+
+                s_no_extra_traits2! {
+                    pub struct mld2q {
+                        pub mld2q_hdr: mld_hdr,
+                        pub mld2q_sqrv: u8,
+                        pub mld2q_qqic: u8,
+                        pub mld2q_numsrc: u16,
+                    }
+                }
+
+                pub const ICMP6_MINLEN: c_int = 8;
+                pub const MLD_V2_QUERY_MINLEN: c_int = 28;
+
+                pub const MLD_V2_SFLAG_MASK: u8 = 0x8;
+                pub const MLD_V2_RV_MASK: u8 = 0x7;
+                pub const MLD_V2_MAXRT_FPMIN: u16 = 0x8000;
+                pub const MLD_V2_MAXRT_MANT_MASK: u16 = 0x0fff;
+                pub const MLD_V2_MAXRT_EXP_MASK: u16 = 0x7000;
+                pub const MLD_V2_QQI_FPMIN: u8 = 0x80;
+                pub const MLD_V2_QQI_MANT_MASK: u8 = 0x0f;
+                pub const MLD_V2_QQI_EXP_MASK: u8 = 0x70;
+
+                pub const MLD_V2_LISTENER_REPORT: u8 = 143;
+                pub const ICMP6_MAX_INFO_TYPE: u8 = 138;
+
+                pub const ICMP6_MAX_HOST_REPORT_DELAY: c_int = 10;
+
+                pub const ND_MAX_INITIAL_RTR_ADVERT_INTERVAL: c_int = 16000;
+                pub const ND_MAX_INITIAL_RTR_ADVERTISEMENTS: c_int = 3;
+                pub const ND_MAX_FINAL_RTR_ADVERTISEMENTS: c_int = 3;
+                pub const ND_MIN_DELAY_BETWEEN_RAS: c_int = 3000;
+                pub const ND_MAX_RA_DELAY_TIME: c_int = 500;
+                pub const ND_MAX_RTR_SOLICITATION_DELAY: c_int = 1000;
+                pub const ND_RTR_SOLICITATION_INTERVAL: c_int = 4000;
+                pub const ND_MAX_RTR_SOLICITATIONS: c_int = 3;
+                pub const ND_MAX_MULTICAST_SOLICIT: c_int = 3;
+                pub const ND_MAX_UNICAST_SOLICIT: c_int = 3;
+                pub const ND_MAX_ANYCAST_DELAY_TIME: c_int = 1000;
+                pub const ND_MAX_NEIGHBOR_ADVERTISEMENT: c_int = 3;
+                pub const ND_REACHABLE_TIME: c_int = 30000;
+                pub const ND_RETRANS_TIMER: c_int = 1000;
+                pub const ND_DELAY_FIRST_PROBE_TIME: c_int = 5000;
+                pub const ND_MAX_REACHTIME: c_int = 3600000;
+                pub const ND_MAX_REACHRETRANSTIME: c_int = 100000;
+
+                cfg_if! {
+                    if #[cfg(target_endian = "big")] {
+                        pub const ICMP_RR_PCOUSE_FLAGS_DECRVLTIME: u32 = 0x80000000;
+                        pub const ICMP_RR_PCOUSE_FLAGS_DECRPLTIME: u32 = 0x40000000;
+                    } else {
+                        pub const ICMP_RR_PCOUSE_FLAGS_DECRVLTIME: u32 = 0x80;
+                        pub const ICMP_RR_PCOUSE_FLAGS_DECRPLTIME: u32 = 0x40;
+                    }
+                }
             }
         }
     }

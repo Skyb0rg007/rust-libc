@@ -354,8 +354,13 @@ fn test_apple(t: &Target) {
     });
 
     cfg.skip_struct_field_type(move |struct_, field| {
-        // The type of `bfl_u` is an anonymous union
-        (struct_.ident(), field.ident()) == ("bpf_dltlist", "bfl_u")
+        match (struct_.ident(), field.ident()) {
+            // The type of `bfl_u` is an anonymous union
+            ("bpf_dltlist", "bfl_u") => true,
+            // `icmp6_dataun` is an anonymous union
+            ("icmp6_hdr", "icmp6_dataun") => true,
+            _ => false,
+        }
     });
 
     cfg.volatile_struct_field(|s, f| s.ident() == "aiocb" && f.ident() == "aio_buf");
@@ -575,6 +580,11 @@ fn test_openbsd(t: &Target) {
 
             _ => false,
         }
+    });
+
+    cfg.skip_struct_field_type(move |struct_, field| {
+        // `icmp6_dataun` is an anonymous union
+        (struct_.ident(), field.ident()) == ("icmp6_hdr", "icmp6_dataun")
     });
 
     cfg.build_test("../src/lib.rs", "ctest_output.rs");
@@ -1139,8 +1149,8 @@ fn test_solarish(t: &Target) {
         match (struct_.ident(), field.ident()) {
             // aio_buf is "volatile void*"
             ("aiocb", "aio_buf") => true,
-            // `ip6_ctlun` is an anonymous union
-            ("ip6_hdr", "ip6_ctlun") => true,
+            // `icmp6_dataun` and `ip6_ctlun` are anonymous unions
+            ("icmp6_hdr", "icmp6_dataun") | ("ip6_hdr", "ip6_ctlun") => true,
             _ => false,
         }
     });
@@ -1468,8 +1478,8 @@ fn test_netbsd(t: &Target) {
             ("sigaction", "sa_sigaction") => true,
             // aio_buf is "volatile void*" and Rust doesn't understand volatile
             ("aiocb", "aio_buf") => true,
-            // `ip6_ctlun` is an anonymous union
-            ("ip6_hdr", "ip6_ctlun") => true,
+            // `icmp6_dataun` and `ip6_ctlun` are anonymous unions
+            ("icmp6_hdr", "icmp6_dataun") | ("ip6_hdr", "ip6_ctlun") => true,
             _ => false,
         }
     });
@@ -1852,6 +1862,8 @@ fn test_dragonflybsd(t: &Target) {
             ("sigaction", "sa_sigaction") => true,
             // aio_buf is "volatile void*" and Rust doesn't understand volatile
             ("aiocb", "aio_buf") => true,
+            // `icmp6_dataun` is an anonymous union
+            ("icmp6_hdr", "icmp6_dataun") => true,
             _ => false,
         }
     });
@@ -2445,6 +2457,8 @@ fn test_android(t: &Target) {
             ("signalfd_siginfo", "ssi_call_addr") => true,
             // FIXME(android): Seems the type has been changed on NDK r26b
             ("flock64", "l_start" | "l_len") => true,
+            // `icmp6_dataun` is an anonymous union
+            ("icmp6_hdr", "icmp6_dataun") => true,
             _ => false,
         }
     });
@@ -3125,6 +3139,11 @@ fn test_freebsd(t: &Target) {
         }
     });
 
+    cfg.skip_struct_field_type(move |struct_, field| {
+        // `icmp6_dataun` is an anonymous union
+        (struct_.ident(), field.ident()) == ("icmp6_hdr", "icmp6_dataun")
+    });
+
     if t.arm32() {
         cfg.skip_roundtrip(move |s| match s {
             // Can't return an array from a C function.
@@ -3378,8 +3397,8 @@ fn test_emscripten(t: &Target) {
             ("ifaddrs", "ifa_ifu") => true,
             // sighandler_t type is super weird
             ("sigaction", "sa_sigaction") => true,
-            // `ip6_ctlun` is an anonymous union
-            ("ip6_hdr", "ip6_ctlun") => true,
+            // `icmp6_dataun` and `ip6_ctlun` are anonymous unions
+            ("icmp6_hdr", "icmp6_dataun") | ("ip6_hdr", "ip6_ctlun") => true,
             _ => false,
         }
     });
@@ -5002,8 +5021,8 @@ fn test_linux(t: &Target) {
             ("utmpx", "ut_exit") if musl => true,
             // `can_addr` is an anonymous union
             ("sockaddr_can", "can_addr") => true,
-            // `ip6_ctlun` is an anonymous union
-            ("ip6_hdr", "ip6_ctlun") => true,
+            // `icmp6_dataun` and `ip6_ctlun` are anonymous unions
+            ("icmp6_hdr", "icmp6_dataun") | ("ip6_hdr", "ip6_ctlun") => true,
             // `anonymous_1` is an anonymous union
             ("ptp_perout_request", "anonymous_1") => true,
             // `anonymous_2` is an anonymous union
